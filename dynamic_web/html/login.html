@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Login</title>
+    <link rel="stylesheet" href="../css/mycss.css">
+</head>
+<body>
+    <div id="container">
+        <div id="warn"></div>
+        <p>云边小卖部</p>
+        <div id="table">
+            <table>
+                <tbody>
+                    <tr>
+                        <td>用户名</td>
+                        <td><input type="text" name="myname" id="name" class="input"></td>
+                    </tr>
+                    <tr>
+                        <td>密码</td>
+                        <td><input type="password" name="passwd" id="pwd" class="input"></td>
+                    </tr>
+                    <tr>
+                        <td align="center" colspan="2">
+                            <button onclick="myfunc()">登录</button>
+                            <button onclick="">取消</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+<script>
+    //封装ajax
+    /**
+    * @param type 请求类型：get,post,...
+    * @param url 请求地址
+    * @param dataObj 请求参数：对象字面量{key:value,...}
+    * @param resolve 成功回调函数
+    * @param reject 失败回调函数
+    * @param async 是否异步
+    */
+
+    //封装跨浏览器的生成XMLHttpRequest对象的方法
+    function createXHR() {
+        if (typeof XMLHttpRequest !== 'undefined') {
+            return new XMLHttpRequest();
+        } else if (typeof ActiveXObject !== 'undefined'){
+            // 支持IE7之前的版本
+            if (typeof arguments.callee.activeXString !== 'string') {
+                var versions = ['MSXML2.XMLHttp.6.0', 'MSXML2.XMLHttp.3.0', 'MSXML2.XMLHttp'];
+                for (var i = 0; i < versions.length; i++) {
+                    try {
+                        new ActiveXObject(versions[i]);
+                        arguments.callee.activeXString = versions[i];
+                        break;
+                    } catch (e) {
+                        //跳过
+                    }
+                }
+            }
+            return new ActiveXObject(arguments.callee.activeXString);
+        } else {
+            throw new Error("No XHR Object available!");
+        }
+    }
+
+    //根据传入参数生成标准数据格式
+    function buildParamsStr(paramsObj){
+        var str = '';
+        for (key in paramsObj) {
+            // 排除原型中属性
+            if (paramsObj.hasOwnProperty(key)) {
+                // 对查询字符串中每个参数名称和值用encdoeURIComponent()进行编码
+                str += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(paramsObj[key]);
+            }
+        }
+        return str.slice(1);
+    }
+
+    //拼接get请求中的标准格式
+    function addURLParams(url, paramsStr) {
+        url += (url.indexOf('?') === -1) ? '?' : '&';
+        url += paramsStr + '&' + new Date().getTime();
+        return url;
+    }
+
+    //封装的ajax函数
+    function ajax(type, url, dataObj, async, resolve, reject) {
+        var paramsStr = buildParamsStr(dataObj), xhr = null;
+        if (type === 'get' && dataObj) {
+            url = addURLParams(url, paramsStr);
+        }
+        xhr = createXHR();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                var status = xhr.status;
+                if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
+                    resolve && resolve(xhr.responseText);
+                } else {
+                    reject && reject(xhr.status);
+                }
+            }
+        };
+        xhr.open(type, url, async);
+        if (type == 'get') {
+            xhr.send(null);
+        } else {
+            xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+            xhr.send(paramsStr);
+            //json格式的请求
+            // xhr.setRequestHeader('content-type', 'application/json;charset=UTF-8');
+            // xhr.send(JSON.stringify(dataObj));
+        }
+    }
+
+//CORS的简单请求里面规定：Content-type的值仅限于下列三者之一：
+
+// text/plain
+// multipart/form-data
+// application/x0www-form-urlencoded
+
+    function myfunc(){
+        /*var i;
+        for(var i=0;i<2;i++){
+            var x=document.getElementsByClassName("input")[i].value;
+            var y=document.getElementById("warn");
+            var arr=['用户名','密码'];
+            if(x==''){
+                y.innerHTML=arr[i]+"不能为空";
+                break;
+            }else{
+                var myid = document.getElementById("name").value;
+            var mypwd = document.getElementById("pwd").value;
+            var obj = {
+                 id:myid,
+                 password:mypwd,
+             }
+             ajax('post','http://47.94.38.136:8090/user/login',obj,true,
+             function resolve(msg){
+                 if(JSON.parse(msg)=='500'){
+                     console.log("用户名或密码错误");
+                 }else{
+                     if(authority==1){
+                        console.log(JSON.parse(msg));
+                        window.location="myindex.html";
+                     }else{
+                        window.location="myindex2.html";
+                     }
+                }
+            },
+            function reject(err){
+                 console.log("请求失败:"+err);
+             })
+            }
+        }*/
+    var i;
+    for(var i=0;i<2;i++){
+        var x=document.getElementsByClassName("input")[i].value;
+        var y=document.getElementById("warn");
+        if(x==''){
+            y.innerHTML="********请输入完整信息********";
+            break;
+        }
+    }
+    if(i==2&&document.getElementsByClassName("input")[0].value=='2019110117'&&document.getElementsByClassName("input")[1].value=='123456'){
+        window.location.href="myindex.html";
+    }else if(i==2){
+        window.location.href="myindex2.html";
+    }
+        var myid = document.getElementById("name").value;
+        var mypwd = document.getElementById("pwd").value;
+         var obj = {
+             id:myid,
+             password:mypwd,
+         }
+         ajax('post','http://192.168.1.143:8090/user/login',obj,true,
+         function resolve(msg){
+             if(JSON.parse(msg)=='500'){
+                 console.log("用户名或密码错误");
+             }else{
+                 var i=JSON.parse(msg);
+                 if(i[0].authority==1){
+                    console.log(JSON.parse(msg));
+                    window.location="myindex.html";
+                    window.localStorage.authority="1";
+                 }else{
+                    window.location="myindex2.html";
+                    window.localStorage.authority="0";
+                 }
+             }
+         },
+         function reject(err){
+             console.log("请求失败:"+err);
+         })
+    }
+</script>
+</html>

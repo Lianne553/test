@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>云边有个小卖部</title>
+    <link rel="stylesheet" href="../css/indexcss.css">
+</head>
+<body>
+    <div id="container">
+        <div id="logo"><img src="../img/logo.jpg" alt="logo"></div>
+        <div id="title">
+            <h1>云边小卖部</h1>
+        </div>
+        <div id="main">
+            <div id="goods" style="background-color: none;text-align: center; ">
+                <h1 style="color: #fff;">sorry 普通用户就是没有那么高级咯</h1>
+            </div>
+        </div>
+    </div>
+</body>
+<script>
+    //封装ajax
+    /**
+    * @param type 请求类型：get,post,...
+    * @param url 请求地址
+    * @param dataObj 请求参数：对象字面量{key:value,...}
+    * @param resolve 成功回调函数
+    * @param reject 失败回调函数
+    * @param async 是否异步
+    */
+
+    //封装跨浏览器的生成XMLHttpRequest对象的方法
+    function createXHR() {
+        if (typeof XMLHttpRequest !== 'undefined') {
+            return new XMLHttpRequest();
+        } else if (typeof ActiveXObject !== 'undefined'){
+            // 支持IE7之前的版本
+            if (typeof arguments.callee.activeXString !== 'string') {
+                var versions = ['MSXML2.XMLHttp.6.0', 'MSXML2.XMLHttp.3.0', 'MSXML2.XMLHttp'];
+                for (var i = 0; i < versions.length; i++) {
+                    try {
+                        new ActiveXObject(versions[i]);
+                        arguments.callee.activeXString = versions[i];
+                        break;
+                    } catch (e) {
+                        //跳过
+                    }
+                }
+            }
+            return new ActiveXObject(arguments.callee.activeXString);
+        } else {
+            throw new Error("No XHR Object available!");
+        }
+    }
+
+    //根据传入参数生成标准数据格式
+    function buildParamsStr(paramsObj){
+        var str = '';
+        for (key in paramsObj) {
+            // 排除原型中属性
+            if (paramsObj.hasOwnProperty(key)) {
+                // 对查询字符串中每个参数名称和值用encdoeURIComponent()进行编码
+                str += "&" + encodeURIComponent(key) + "=" + encodeURIComponent(paramsObj[key]);
+            }
+        }
+        return str.slice(1);
+    }
+
+    //拼接get请求中的标准格式
+    function addURLParams(url, paramsStr) {
+        url += (url.indexOf('?') === -1) ? '?' : '&';
+        url += paramsStr + '&' + new Date().getTime();
+        return url;
+    }
+
+    //封装的ajax函数
+    function ajax(type, url, dataObj, async, resolve, reject) {
+        var paramsStr = buildParamsStr(dataObj), xhr = null;
+        if (type === 'get' && dataObj) {
+            url = addURLParams(url, paramsStr);
+        }
+        xhr = createXHR();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState == 4) {
+                var status = xhr.status;
+                if ((xhr.status >= 200 && xhr.status < 300) || xhr.status == 304) {
+                    resolve && resolve(xhr.responseText);
+                } else {
+                    reject && reject(xhr.status);
+                }
+            }
+        };
+        xhr.open(type, url, async);
+        if (type == 'get') {
+            xhr.send(null);
+        } else {
+            xhr.setRequestHeader('content-type', 'application/x-www-form-urlencoded;charset=UTF-8');
+            xhr.send(paramsStr);
+            //json格式的请求
+            // xhr.setRequestHeader('content-type', 'application/json;charset=UTF-8');
+            // xhr.send(JSON.stringify(dataObj));
+        }
+    }
+
+//CORS的简单请求里面规定：Content-type的值仅限于下列三者之一：
+
+// text/plain
+// multipart/form-data
+// application/x0www-form-urlencoded
+window.onload=function(){
+        var obj ={}
+        ajax('get','http://47.94.38.136:8090/goods/getgoods',obj,true,
+         function resolve(msg){
+             if(JSON.parse(msg)=='500'){
+                 console.log("获取失败");
+             }else{
+                 console.log(JSON.parse(msg));
+             }
+         },
+         function reject(err){
+             console.log("请求失败:"+err);
+         })
+    }
+</script>
+</html>
